@@ -1,24 +1,13 @@
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white text-black font-sans">
-      
-      <nav className="flex items-center justify-between px-8 py-5 border-b border-zinc-200">
-        <span className="font-semibold text-lg tracking-tight">CVSF</span>
-        <div className="flex gap-6 text-sm text-zinc-500 items-center">
-          <a href="#how" className="hover:text-black transition-colors">How it works</a>
-          <a href="#features" className="hover:text-black transition-colors">Features</a>
-          <a href="#" className="bg-black text-white px-4 py-1.5 rounded-full hover:bg-zinc-800 transition-colors">Get started</a>
-        </div>
-      </nav>
-
-     
+    <div className="bg-white text-black font-sans">
       <section className="max-w-3xl mx-auto px-8 pt-24 pb-20">
-        <p className="text-xs font-medium uppercase tracking-widest text-zinc-400 mb-4">AI-powered movement analysis</p>
+        <p className="text-xs font-medium uppercase tracking-widest text-zinc-400 mb-4">AI-powered movement analysis and sports education</p>
         <h1 className="text-5xl font-semibold leading-tight tracking-tight mb-6">
-          Real-time posture<br />feedback, zero guesswork.
+          Real-time posture <br/> feedback, zero guesswork.
         </h1>
         <p className="text-lg text-zinc-500 max-w-xl mb-10">
-          A camera and AI analyze your form during exercise, sports, and rehabilitation — giving instant corrective cues before bad habits become injuries.
+          A camera and AI analyze your form during exercise and sports — giving instant corrective cues before bad habits become injuries.
         </p>
         <div className="flex gap-3">
           <a href="#" className="bg-black text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-zinc-800 transition-colors">
@@ -30,14 +19,12 @@ export default function Home() {
         </div>
       </section>
 
-      
       <section className="max-w-3xl mx-auto px-8 pb-24">
         <div className="w-full h-72 bg-zinc-100 rounded-2xl flex items-center justify-center text-zinc-300 text-sm border border-zinc-200">
           [ live pose demo ]
         </div>
       </section>
 
-      
       <section id="how" className="border-t border-zinc-100 bg-zinc-50 py-20 px-8">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-semibold mb-10">How it works</h2>
@@ -57,7 +44,6 @@ export default function Home() {
         </div>
       </section>
 
-  
       <section id="features" className="py-20 px-8">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-semibold mb-10">Built for everyone</h2>
@@ -77,7 +63,6 @@ export default function Home() {
         </div>
       </section>
 
-    
       <section className="border-t border-zinc-100 bg-zinc-50 py-20 px-8 text-center">
         <h2 className="text-3xl font-semibold mb-4">Move better, starting today.</h2>
         <p className="text-zinc-500 mb-8 text-sm">Join the waitlist for early access.</p>
@@ -85,12 +70,6 @@ export default function Home() {
           Request early access
         </a>
       </section>
-
-      
-      <footer className="border-t border-zinc-100 px-8 py-6 text-xs text-zinc-400 flex justify-between">
-        <span>© 2026 CVSF</span>
-        <span> Accessibilty and knowledge for all </span>
-      </footer>
     </div>
   );
 }
