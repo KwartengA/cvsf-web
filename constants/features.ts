@@ -9,6 +9,7 @@ export type Feature = {
   title: string;
   description: string;
   image: string;
+  tilt: number;
 };
 
 export type SportsSection = {
@@ -31,6 +32,7 @@ export const features: Feature[] = [
     description:
       "33 keypoints tracked at up to 30fps directly on your device. No cloud round-trip, no lag — instant spatial awareness of every joint.",
     image: "/assets/images/gym_001.jpg",
+    tilt: -2,
   },
   {
     tag: "02 Feedback",
@@ -38,6 +40,7 @@ export const features: Feature[] = [
     description:
       "One correction at a time, surfaced the moment your form breaks. The most important fix, right when you need it.",
     image: "/assets/images/gym_002.jpg",
+    tilt: 1.5,
   },
   {
     tag: "04  History",
@@ -45,6 +48,7 @@ export const features: Feature[] = [
     description:
       "Every rep scored, every session logged. Review your form trend over days and weeks without needing a coach to read the data.",
     image: "/assets/images/gym_003.jpg",
+    tilt: -1.5,
   },
   {
     tag: "05  Privacy",
@@ -52,6 +56,7 @@ export const features: Feature[] = [
     description:
       "No video leaves your network. Runs offline on a Raspberry Pi, a laptop, or any Linux device with a camera attached.",
     image: "/assets/images/basketball_001.jpg",
+    tilt: 2,
   },
 ];
 
