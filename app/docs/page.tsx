@@ -157,11 +157,39 @@ export default function DocsPage() {
     container.scrollTo({ top: offset, behavior: "smooth" });
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
-    <div className="flex h-[calc(100vh-57px)]">
+    <div className="flex h-[calc(100vh-57px)] relative">
+
+      {/* Mobile sidebar toggle */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="md:hidden fixed bottom-6 right-6 z-50 bg-black text-white w-12 h-12 flex items-center justify-center shadow-lg"
+        aria-label={sidebarOpen ? "Close navigation" : "Open navigation"}
+      >
+        {sidebarOpen ? (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        )}
+      </button>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-30 bg-black/20"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* sidebar */}
-      <aside className="w-64 shrink-0 border-r border-zinc-100 flex flex-col bg-white overflow-y-auto">
+      <aside className={`
+        fixed md:static inset-y-0 left-0 z-40
+        w-64 shrink-0 border-r border-zinc-100 flex flex-col bg-white overflow-y-auto
+        transition-transform duration-200
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+      `}>
         {/* search */}
         <div className="px-4 py-4 border-b border-zinc-100">
           <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2">
@@ -211,6 +239,7 @@ export default function DocsPage() {
                   onClick={() => {
                     setActive(item.id);
                     setQuery("");
+                    setSidebarOpen(false);
                   }}
                   className={`w-full text-left px-3 py-1.5 ml-2 rounded-lg text-xs transition-colors duration-150 ${
                     active === item.id
@@ -227,7 +256,7 @@ export default function DocsPage() {
       </aside>
 
       {/* main content */}
-      <main ref={mainRef} className="flex-1 overflow-y-auto px-12 py-12">
+      <main ref={mainRef} className="flex-1 overflow-y-auto px-6 sm:px-12 py-8 sm:py-12">
         <div className="max-w-xl">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-9 h-9 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">

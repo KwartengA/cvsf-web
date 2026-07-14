@@ -1,67 +1,69 @@
+import Image from "next/image";
+import AudienceSection from "@/app/components/AudienceSection";
+
 export default function Home() {
   return (
     <div className="bg-white text-black font-sans">
-      <section className="max-w-3xl mx-auto px-8 pt-24 pb-20">
-        <p className="text-xs font-medium uppercase tracking-widest text-zinc-400 mb-4">AI-powered movement analysis and sports education</p>
-        <h1 className="text-5xl font-semibold leading-tight tracking-tight mb-6">
-          Real-time posture <br/> feedback, zero guesswork.
-        </h1>
-        <p className="text-lg text-zinc-500 max-w-xl mb-10">
-          A camera and AI analyze your form during exercise and sports — giving instant corrective cues before bad habits become injuries.
-        </p>
-        <div className="flex gap-3">
-          <a href="#" className="bg-black text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-zinc-800 transition-colors">
-            Request early access
-          </a>
-          <a href="#how" className="px-6 py-3 rounded-full text-sm font-medium border border-zinc-200 hover:bg-zinc-50 transition-colors">
-            See how it works
-          </a>
+      <section className="relative w-full h-[85vh] min-h-120 flex items-center justify-center overflow-hidden">
+        <Image
+          src="/assets/images/pose_estimation_001.png"
+          alt="Athlete in motion"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/35" />
+
+        <div className="relative z-10 text-center px-6 sm:px-10 max-w-5xl mx-auto">
+          <p className="text-[10px] sm:text-xs font-medium uppercase tracking-widest text-white/70 mb-4 sm:mb-6">
+            AI-powered movement analysis
+          </p>
+          <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase leading-none tracking-tight text-white">
+            Real-time posture.<br />Zero guesswork.
+          </h1>
         </div>
       </section>
 
-      <section className="max-w-3xl mx-auto px-8 pb-24">
-        <div className="w-full h-72 bg-zinc-100 rounded-2xl flex items-center justify-center text-zinc-300 text-sm border border-zinc-200">
-          [ live pose demo ]
-        </div>
-      </section>
-
-      <section id="how" className="border-t border-zinc-100 bg-zinc-50 py-20 px-8">
+      <section id="how" className="bg-white py-20 sm:py-28 px-6 sm:px-8">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-semibold mb-10">How it works</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+          <p className="text-xs font-mono text-zinc-400 uppercase tracking-widest mb-4">How it works</p>
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight mb-16">
+            From camera to correction<br className="hidden sm:block" /> in under a second.
+          </h2>
+
+          <div className="flex flex-col divide-y divide-zinc-100">
             {[
-              { step: "01", title: "Point the camera", desc: "A Raspberry Pi with an attached camera captures your movement in real time." },
-              { step: "02", title: "AI reads your form", desc: "On-device models detect joints, angles, and alignment — no cloud delay." },
-              { step: "03", title: "Get instant feedback", desc: "The web dashboard shows corrections and performance data as you move." },
+              {
+                step: "1",
+                title: "Point your camera",
+                desc: "Set up any USB or IP camera — or use your laptop's built-in one. The app starts tracking the moment it sees you.",
+              },
+              {
+                step: "2",
+                title: "AI maps your body",
+                desc: "33 keypoints are tracked at up to 30 frames per second, entirely on your device. No video is ever sent to a server.",
+              },
+              {
+                step: "3",
+                title: "Get the one fix that matters",
+                desc: "One correction surfaces at a time — the most important one, right when your form breaks. No noise, no overwhelm.",
+              },
             ].map(({ step, title, desc }) => (
-              <div key={step}>
-                <p className="text-xs font-mono text-zinc-400 mb-2">{step}</p>
-                <h3 className="font-medium mb-1">{title}</h3>
-                <p className="text-sm text-zinc-500">{desc}</p>
+              <div key={step} className="flex gap-8 sm:gap-12 py-10">
+                <span className="text-4xl sm:text-5xl font-black text-zinc-100 leading-none shrink-0 w-10 sm:w-14 select-none">
+                  {step}
+                </span>
+                <div className="pt-1">
+                  <h3 className="text-lg font-semibold text-black mb-2">{title}</h3>
+                  <p className="text-base text-zinc-600 leading-relaxed max-w-md">{desc}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="features" className="py-20 px-8">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-semibold mb-10">Built for everyone</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {[
-              { title: "Athletes", desc: "Optimize technique and catch compensations before they cause overuse injuries." },
-              { title: "Rehab patients", desc: "Track recovery progress and ensure exercises are done with correct form." },
-              { title: "Coaches", desc: "Monitor multiple athletes with timestamped session data and form scores." },
-              { title: "Gyms & clinics", desc: "Deploy on any camera-equipped device — no expensive proprietary hardware." },
-            ].map(({ title, desc }) => (
-              <div key={title} className="p-6 border border-zinc-200 rounded-xl">
-                <h3 className="font-medium mb-1">{title}</h3>
-                <p className="text-sm text-zinc-500">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <AudienceSection />
 
       <section className="border-t border-zinc-100 bg-zinc-50 py-20 px-8 text-center">
         <h2 className="text-3xl font-semibold mb-4">Move better, starting today.</h2>
