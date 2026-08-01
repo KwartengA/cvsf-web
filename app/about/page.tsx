@@ -49,7 +49,7 @@ export default function AboutPage() {
         What we are building and why
       </h1>
       <p className="text-base text-zinc-600 leading-relaxed mb-6 max-w-lg">
-        CVSF started from a simple frustration — good movement coaching is expensive and out of reach for most people.
+        CVSF started from a simple frustration , good movement coaching is expensive and out of reach for most people.
       </p>
       <p className="text-base text-zinc-600 leading-relaxed mb-16 max-w-lg">
         We are fixing that with software you already own and models that run entirely on your device. A dedicated hardware setup is available for those who want it, but the software works on most computers with a camera attached. We are in early access and expanding to more devices and sports over time.

@@ -7,7 +7,7 @@ export const faqs: Faq[] = [
   {
     question: "What is CVSF?",
     answer:
-      "CVSF is an AI-powered form analysis platform that gives you real-time feedback on your exercise technique. Using your camera, it tracks your movement, detects errors, and delivers instant corrections — like having a personal coach watching every rep. It supports gym exercises, swimming, tennis, and basketball.",
+      "CVSF is an AI-powered form analysis platform that gives you real-time feedback on your exercise technique. Using your camera, it tracks your movement, detects errors, and delivers instant corrections — like having a personal coach watching every rep. It supports gym exercises and tennis.",
   },
   {
     question: "How does the form analysis work?",
@@ -17,7 +17,7 @@ export const faqs: Faq[] = [
   {
     question: "Which sports and exercises are supported?",
     answer:
-      "Currently supported: gym and strength training, swimming, tennis, and basketball. More sports are added with each release.",
+      "Currently supported: gym and strength training, and tennis. More sports are added with each release.",
   },
   {
     question: "Is this a replacement for a trainer or coach?",

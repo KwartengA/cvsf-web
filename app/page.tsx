@@ -1,12 +1,12 @@
-import Image from "next/image";
 import AudienceSection from "@/app/components/AudienceSection";
+import Image from "next/image";
 
 export default function Home() {
   return (
     <div className="bg-white text-black font-sans">
       <section className="relative w-full h-[85vh] min-h-120 flex items-center justify-center overflow-hidden">
         <Image
-          src="/assets/images/pose_estimation_001.png"
+          src="/assets/images/tennis_004.png"
           alt="Athlete in motion"
           fill
           className="object-cover"

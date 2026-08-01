@@ -51,7 +51,7 @@ export const features: Feature[] = [
     title: "Fully on-device",
     description:
       "No video leaves your network. Runs offline on a Raspberry Pi, a laptop, or any Linux device with a camera attached.",
-    image: "/assets/images/basketball_001.jpg",
+    image: "/assets/images/tennis_002.jpg",
   },
 ];
 
@@ -62,18 +62,8 @@ export const sportCards: SportCard[] = [
     image: "/assets/images/gym_001.jpg",
   },
   {
-    name: "Swimming",
-    description: "Stroke rate, entry angle, and body roll tracked per length. Turn pool sessions into measurable technique progress.",
-    image: "/assets/images/swimming_003.jpg",
-  },
-  {
     name: "Tennis",
     description: "Serve motion and swing mechanics checked against form benchmarks. Catch the small errors that cost you the big points.",
     image: "/assets/images/tennis_001.jpg",
-  },
-  {
-    name: "Basketball",
-    description: "Shot release angle and footwork assessed on every attempt. Build consistency through data, not guesswork.",
-    image: "/assets/images/basketball_002.jpg",
   },
 ];

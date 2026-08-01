@@ -65,12 +65,10 @@ const sections = [
     id: "sports",
     icon: Trophy,
     title: "Sports",
-    body: "Each sport ships with its own keypoint weights and form rules. Supported disciplines: Gym & strength training, Swimming, Tennis, Basketball. More sports are added with each release.",
+    body: "Each sport ships with its own keypoint weights and form rules. Supported disciplines: Gym & strength training, Tennis. More sports are added with each release.",
     headings: [
       { id: "sports-gym", label: "Gym & strength" },
-      { id: "sports-swimming", label: "Swimming" },
       { id: "sports-racket", label: "Tennis" },
-      { id: "sports-basketball", label: "Basketball" },
     ],
   },
   {

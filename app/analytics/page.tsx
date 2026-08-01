@@ -36,7 +36,7 @@ type View = "home" | "record" | "processing" | "results";
 
 // ── Demo data ─────────────────────────────────────────────────────────────────
 
-const SPORTS = ["Gym — Squat", "Gym — Deadlift", "Tennis — Serve", "Tennis — Forehand", "Swimming — Freestyle", "Basketball — Shot"];
+const SPORTS = ["Gym — Squat", "Gym — Deadlift", "Tennis — Serve", "Tennis — Forehand"];
 
 const DEMO_SESSION: Session = {
   id: "s1",
