@@ -25,6 +25,7 @@ type Session = {
   label: string;
   sport: string;
   date: string;
+  status: string;
   overallScore: number;
   repCount: number;
   joints: Joint[];
@@ -86,7 +87,13 @@ function apiSessionToSession(api: ApiSession): Session {
     id: api.id,
     label: api.sport,
     sport: api.sport,
-    date: new Date(api.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    date: new Date(api.updatedAt).toLocaleString([], {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    status: api.status,
     overallScore: api.formScore ?? 0,
     repCount: api.repCount,
     joints: api.joints.map((j) => ({
@@ -503,6 +510,67 @@ function ProcessingView() {
   );
 }
 
+function LivePiFeed() {
+  const [piHost, setPiHost] = useState("");
+  const [streamKey, setStreamKey] = useState(0);
+  const [errored, setErrored] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("cvsf_pi_host");
+      if (saved) setPiHost(saved);
+    } catch {}
+  }, []);
+
+  function savePiHost(value: string) {
+    setPiHost(value);
+    setErrored(false);
+    setStreamKey((k) => k + 1);
+    try {
+      localStorage.setItem("cvsf_pi_host", value);
+    } catch {}
+  }
+
+  const streamUrl = piHost ? `http://${piHost}/stream.mjpg` : null;
+
+  return (
+    <div className="bg-white border border-zinc-100 mb-8">
+      <div className="px-5 py-3.5 border-b border-zinc-100 flex items-center justify-between gap-4">
+        <p className="text-[9px] font-mono text-zinc-300 uppercase tracking-widest">Live camera - Raspberry Pi</p>
+        <input
+          type="text"
+          defaultValue={piHost}
+          onBlur={(e) => savePiHost(e.target.value.trim())}
+          placeholder="e.g. 172.20.10.4:5001"
+          className="text-xs font-mono px-3 py-1.5 border border-zinc-200 focus:border-black outline-none w-48"
+        />
+      </div>
+      <div className="relative w-full aspect-video bg-zinc-950 flex items-center justify-center overflow-hidden">
+        {!streamUrl && (
+          <p className="text-xs font-mono text-zinc-500 uppercase tracking-widest px-6 text-center">
+            Enter the Pi&apos;s address above to view the live feed
+          </p>
+        )}
+        {streamUrl && errored && (
+          <p className="text-xs font-mono text-zinc-500 uppercase tracking-widest px-6 text-center">
+            Could not reach {piHost} - check the Pi is running pi_live_inference.py with --stream-port and is on the same network
+          </p>
+        )}
+        {streamUrl && !errored && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={streamKey}
+            src={streamUrl}
+            alt="Live Raspberry Pi camera feed"
+            className="w-full h-full object-contain"
+            onError={() => setErrored(true)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ResultsView({ session, onNew }: { session: Session; onNew: () => void }) {
   const [activeJoint, setActiveJoint] = useState<string | null>(null);
   const [openFeedback, setOpenFeedback] = useState<string | null>(session.feedback[0]?.id ?? null);
@@ -555,6 +623,8 @@ function ResultsView({ session, onNew }: { session: Session; onNew: () => void }
           </div>
         ))}
       </div>
+
+      {session.status === "live" && <LivePiFeed />}
 
       {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_320px] gap-px bg-zinc-100 border border-zinc-100">

@@ -9,6 +9,7 @@ datasource db {
 
 model Session {
   id          String   @id @default(cuid())
+  userId      String?
   sport       String   // "squat" | "pushup" | "leg_press" | "tennis_shot"
   status      String   @default("live") // "live" | "complete"
   formScore   Int?
