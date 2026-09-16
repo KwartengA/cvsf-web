@@ -49,4 +49,5 @@ model RepScore {
   session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   repIndex  Int
   score     Int
+  shotType  String? // tennis only: predicted shot label ("forehand", "serve", ...)
 }

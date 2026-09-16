@@ -31,6 +31,7 @@ type Session = {
   joints: Joint[];
   feedback: FeedbackItem[];
   repScores: number[];
+  shotTypes: string[];
 };
 
 type View = "home" | "record" | "processing" | "results";
@@ -45,7 +46,7 @@ type ApiFeedback = {
   message: string;
   detail: string;
 };
-type ApiRepScore = { id: string; repIndex: number; score: number };
+type ApiRepScore = { id: string; repIndex: number; score: number; shotType?: string | null };
 type ApiSession = {
   id: string;
   sport: string;
@@ -79,9 +80,11 @@ const LABEL_TO_RIG_ID: Record<string, string> = {
 };
 
 function apiSessionToSession(api: ApiSession): Session {
-  const repScores = [...api.reps]
-    .sort((a, b) => a.repIndex - b.repIndex)
-    .map((r) => r.score);
+  const sortedReps = [...api.reps].sort((a, b) => a.repIndex - b.repIndex);
+  const repScores = sortedReps.map((r) => r.score);
+  const shotTypes = sortedReps
+    .map((r) => r.shotType)
+    .filter((s): s is string => !!s);
 
   return {
     id: api.id,
@@ -112,6 +115,7 @@ function apiSessionToSession(api: ApiSession): Session {
     })),
     // RepChart/best-worst rep math assumes at least one entry.
     repScores: repScores.length > 0 ? repScores : [api.formScore ?? 0],
+    shotTypes,
   };
 }
 
@@ -571,6 +575,80 @@ function LivePiFeed() {
   );
 }
 
+function speak(text: string) {
+  try {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel(); // don't queue/overlap over a still-speaking prior shot
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
+  } catch {}
+}
+
+function shotLabel(shotType: string) {
+  return shotType.charAt(0).toUpperCase() + shotType.slice(1).replace(/_/g, " ");
+}
+
+function TennisShotResults({ session, onNew }: { session: Session; onNew: () => void }) {
+  const spokenCount = useRef(0);
+
+  // Speak each newly-arrived shot type as it comes in from the polling
+  // loop, so a showcase audience hears "Forehand" the moment a hit is
+  // predicted and can then watch the (slightly lagged) replay/stream.
+  useEffect(() => {
+    const newShots = session.shotTypes.slice(spokenCount.current);
+    if (newShots.length === 0) return;
+    spokenCount.current = session.shotTypes.length;
+    newShots.forEach((shot) => speak(shotLabel(shot)));
+  }, [session.shotTypes]);
+
+  useEffect(() => {
+    spokenCount.current = 0;
+  }, [session.id]);
+
+  return (
+    <div className="max-w-4xl mx-auto px-6 sm:px-8 py-8">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8 pb-8 border-b border-zinc-100">
+        <div>
+          <p className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest mb-2">
+            {session.status === "live" ? "Session live" : "Session complete"}
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight mb-1">Tennis - shot type</h2>
+          <p className="text-xs font-mono text-zinc-400">{session.date} · {session.shotTypes.length} shot(s) detected</p>
+        </div>
+        <button
+          onClick={onNew}
+          className="px-6 py-3 border border-zinc-200 text-xs font-mono uppercase tracking-widest text-zinc-500 hover:border-black hover:text-black transition-colors duration-200 cursor-pointer"
+        >
+          New session
+        </button>
+      </div>
+
+      {session.status === "live" && <LivePiFeed />}
+
+      <div className="border border-zinc-100">
+        <div className="px-5 py-3.5 border-b border-zinc-100">
+          <p className="text-[9px] font-mono text-zinc-300 uppercase tracking-widest">Detected shots</p>
+        </div>
+        {session.shotTypes.length === 0 ? (
+          <p className="text-xs text-zinc-400 px-5 py-8 text-center">
+            Waiting for the first hit to be detected…
+          </p>
+        ) : (
+          <div className="divide-y divide-zinc-100">
+            {session.shotTypes.map((shot, i) => (
+              <div key={i} className="flex items-center gap-4 px-5 py-4">
+                <span className="text-[10px] font-mono text-zinc-300 w-16 shrink-0">Hit {i + 1}</span>
+                <span className="text-sm font-black uppercase tracking-tight">{shotLabel(shot)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ResultsView({ session, onNew }: { session: Session; onNew: () => void }) {
   const [activeJoint, setActiveJoint] = useState<string | null>(null);
   const [openFeedback, setOpenFeedback] = useState<string | null>(session.feedback[0]?.id ?? null);
@@ -766,6 +844,12 @@ export default function AnalyticsPage() {
   const [view, setView] = useState<View>("home");
   const [session, setSession] = useState<Session | null>(null);
 
+  // Ids dismissed via "New session" — the API always returns the newest row
+  // in the db, which is stale once the user has moved past it. Skip those
+  // (and anything older, since sessions never come back) until a session
+  // with an id we haven't dismissed shows up.
+  const dismissedIds = useRef<Set<string>>(new Set());
+
   // Poll the latest session while viewing results, so the page reflects the
   // Pi's POST/PATCH calls as they land. 1.5s is plenty for a demo — no need
   // for websockets.
@@ -778,7 +862,8 @@ export default function AnalyticsPage() {
       const res = await fetch("/api/sessions");
       if (!res.ok || cancelled) return;
       const sessions: ApiSession[] = await res.json();
-      if (sessions.length > 0) setSession(apiSessionToSession(sessions[0]));
+      const latest = sessions.find((s) => !dismissedIds.current.has(s.id));
+      if (latest) setSession(apiSessionToSession(latest));
     }
 
     fetchLatest();
@@ -828,8 +913,19 @@ export default function AnalyticsPage() {
       {view === "home"       && <HomeView onStart={() => setView("record")} />}
       {view === "record"     && <RecordView onDone={handleRecordDone} />}
       {view === "processing" && <ProcessingView />}
-      {view === "results" && session && (
-        <ResultsView session={session} onNew={() => { setSession(null); setView("home"); }} />
+      {view === "results" && session && session.sport === "tennis_shot" && (
+        <TennisShotResults session={session} onNew={() => {
+          dismissedIds.current.add(session.id);
+          setSession(null);
+          setView("home");
+        }} />
+      )}
+      {view === "results" && session && session.sport !== "tennis_shot" && (
+        <ResultsView session={session} onNew={() => {
+          dismissedIds.current.add(session.id);
+          setSession(null);
+          setView("home");
+        }} />
       )}
       {view === "results" && !session && (
         <div className="max-w-sm mx-auto px-6 sm:px-8 py-24 flex flex-col items-center text-center">
