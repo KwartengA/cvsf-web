@@ -20,7 +20,7 @@ const sections = [
     id: "introducing",
     icon: BookOpen,
     title: "Introducing CVSF",
-    body: "CVSF is a computer vision fitness platform that gives real-time posture and form feedback using your camera — no gym trainer required. It runs entirely on-device, meaning no video ever leaves your local network.",
+    body: "CVSF is a computer vision fitness platform that gives real-time posture and form feedback using your camera, no gym trainer required. It runs entirely on-device, meaning no video ever leaves your local network.",
     headings: [
       { id: "introducing-overview", label: "Overview" },
       { id: "introducing-how-it-works", label: "How it works" },
@@ -54,7 +54,7 @@ const sections = [
     id: "analysis",
     icon: Zap,
     title: "Analysis",
-    body: "The analysis engine tracks 33 body keypoints per frame using MediaPipe Pose. Joint angles and alignment are calculated locally and compared against sport-specific form benchmarks. Corrections are surfaced one at a time — the most critical fix first.",
+    body: "The analysis engine tracks 33 body keypoints per frame using MediaPipe Pose. Joint angles and alignment are calculated locally and compared against sport-specific form benchmarks. Corrections are surfaced one at a time, the most critical fix first.",
     headings: [
       { id: "analysis-keypoints", label: "Keypoints" },
       { id: "analysis-benchmarks", label: "Benchmarks" },

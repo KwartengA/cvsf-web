@@ -6,7 +6,7 @@ const audiences = [
   {
     title: "Athletes",
     tagline: "Train smarter, not just harder.",
-    desc: "Catch form breakdown before it becomes an injury. Get rep-by-rep scoring and trend data so you can see exactly where your technique is drifting — and fix it before it costs you.",
+    desc: "Catch form breakdown before it becomes an injury. Get rep-by-rep scoring and trend data so you can see exactly where your technique is drifting, and fix it before it costs you.",
     stats: [
       { value: "33", label: "keypoints tracked" },
       { value: "30fps", label: "real-time analysis" },
@@ -16,7 +16,7 @@ const audiences = [
   {
     title: "Rehab patients",
     tagline: "Know your form is right, every rep.",
-    desc: "Exercises done with poor form during recovery can set you back weeks. CVSF gives you a second set of eyes on every movement — and logs your progress so you can show your physio exactly what you've been doing.",
+    desc: "Exercises done with poor form during recovery can set you back weeks. CVSF gives you a second set of eyes on every movement, and logs your progress so you can show your physio exactly what you've been doing.",
     stats: [
       { value: "100%", label: "on-device, private" },
       { value: "Every", label: "rep scored" },
@@ -26,7 +26,7 @@ const audiences = [
   {
     title: "Coaches",
     tagline: "Watch everyone at once.",
-    desc: "Monitor multiple athletes in a single session with timestamped form scores and session logs. Spot who needs correction without standing over them — and export data to share with athletes or medical staff.",
+    desc: "Monitor multiple athletes in a single session with timestamped form scores and session logs. Spot who needs correction without standing over them, and export data to share with athletes or medical staff.",
     stats: [
       { value: "Multi", label: "athlete support" },
       { value: "CSV", label: "data export" },
@@ -36,7 +36,7 @@ const audiences = [
   {
     title: "Gyms & clinics",
     tagline: "No proprietary hardware required.",
-    desc: "Deploy on any device with a camera — a mounted tablet, an existing laptop, or a Raspberry Pi. No expensive setup, no vendor lock-in. Works on your local network with no subscription for the base tier.",
+    desc: "Deploy on any device with a camera: a mounted tablet, an existing laptop, or a Raspberry Pi. No expensive setup, no vendor lock-in. Works on your local network with no subscription for the base tier.",
     stats: [
       { value: "Any", label: "camera works" },
       { value: "Local", label: "network only" },

@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const sport = sportBySlug[slug];
   if (!sport) return {};
   return {
-    title: `${sport.name} Fundamentals — CVSF`,
+    title: `${sport.name} Fundamentals - CVSF`,
     description: sport.description,
   };
 }

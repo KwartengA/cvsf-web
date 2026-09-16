@@ -15,11 +15,11 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/35" />
 
         <div className="relative z-10 text-center px-6 sm:px-10 max-w-5xl mx-auto">
-          <p className="text-[10px] sm:text-xs font-medium uppercase tracking-widest text-white/70 mb-4 sm:mb-6">
+          <p className="text-[10px] sm:text-xs font-medium uppercase tracking-widest text-white/70 mb-6 sm:mb-8">
             AI-powered movement analysis
           </p>
           <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase leading-none tracking-tight text-white">
-            Real-time posture.<br />Zero guesswork.
+            Real-time posture and learning.<br />Zero guesswork.
           </h1>
         </div>
       </section>
@@ -36,7 +36,7 @@ export default function Home() {
               {
                 step: "1",
                 title: "Point your camera",
-                desc: "Set up any USB or IP camera — or use your laptop's built-in one. The app starts tracking the moment it sees you.",
+                desc: "Set up any USB or IP camera, or use your laptop's built-in one. The app starts tracking the moment it sees you.",
               },
               {
                 step: "2",
@@ -46,7 +46,7 @@ export default function Home() {
               {
                 step: "3",
                 title: "Get the one fix that matters",
-                desc: "One correction surfaces at a time — the most important one, right when your form breaks. No noise, no overwhelm.",
+                desc: "One correction surfaces at a time, the most important one, right when your form breaks. No noise, no overwhelm.",
               },
             ].map(({ step, title, desc }) => (
               <div key={step} className="flex gap-8 sm:gap-12 py-10">

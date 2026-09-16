@@ -34,55 +34,83 @@ type Session = {
 
 type View = "home" | "record" | "processing" | "results";
 
-// ── Demo data ─────────────────────────────────────────────────────────────────
+// API response shapes (app/api/sessions/route.ts, app/api/sessions/[id]/route.ts)
 
-const SPORTS = ["Gym — Squat", "Gym — Deadlift", "Tennis — Serve", "Tennis — Forehand"];
-
-const DEMO_SESSION: Session = {
-  id: "s1",
-  label: "Morning session",
-  sport: "Gym — Squat",
-  date: "Just now",
-  overallScore: 71,
-  repCount: 12,
-  joints: [
-    { id: "j-head", label: "Head",       x: 50, y: 8,  score: 90 },
-    { id: "j-lsh",  label: "L Shoulder", x: 38, y: 20, score: 85 },
-    { id: "j-rsh",  label: "R Shoulder", x: 62, y: 20, score: 82 },
-    { id: "j-lel",  label: "L Elbow",    x: 32, y: 32, score: 78 },
-    { id: "j-rel",  label: "R Elbow",    x: 68, y: 32, score: 80 },
-    { id: "j-lwr",  label: "L Wrist",    x: 28, y: 43, score: 75 },
-    { id: "j-rwr",  label: "R Wrist",    x: 72, y: 43, score: 76 },
-    { id: "j-hip",  label: "Hip",        x: 50, y: 50, score: 55 },
-    { id: "j-lkn",  label: "L Knee",     x: 41, y: 67, score: 42 },
-    { id: "j-rkn",  label: "R Knee",     x: 59, y: 67, score: 48 },
-    { id: "j-lank", label: "L Ankle",    x: 41, y: 84, score: 68 },
-    { id: "j-rank", label: "R Ankle",    x: 59, y: 84, score: 65 },
-  ],
-  feedback: [
-    {
-      id: "f1", severity: "critical", joint: "Knee",
-      message: "Knee cave on descent",
-      detail: "Both knees are collapsing inward at the bottom of the squat. Drive your knees out in line with your toes throughout the entire descent.",
-    },
-    {
-      id: "f2", severity: "critical", joint: "Hip",
-      message: "Hip hinge too early",
-      detail: "Your hips are breaking before your knees, shifting load onto the lower back. Initiate the descent with simultaneous knee and hip movement.",
-    },
-    {
-      id: "f3", severity: "warning", joint: "L Shoulder",
-      message: "Bar creeping forward",
-      detail: "The bar is drifting past mid-foot on reps 6–10. Keep your chest up and brace harder before the descent.",
-    },
-    {
-      id: "f4", severity: "good", joint: "Head",
-      message: "Head position consistent",
-      detail: "Neutral spine from the neck upward through all reps. Keep it.",
-    },
-  ],
-  repScores: [78, 75, 72, 70, 68, 65, 62, 68, 71, 70, 74, 76],
+type ApiJoint = { id: string; label: string; x: number; y: number; score: number };
+type ApiFeedback = {
+  id: string;
+  severity: "critical" | "warning" | "good";
+  joint: string;
+  message: string;
+  detail: string;
 };
+type ApiRepScore = { id: string; repIndex: number; score: number };
+type ApiSession = {
+  id: string;
+  sport: string;
+  status: string;
+  formScore: number | null;
+  repCount: number;
+  durationSec: number;
+  startedAt: string;
+  updatedAt: string;
+  joints: ApiJoint[];
+  feedback: ApiFeedback[];
+  reps: ApiRepScore[];
+};
+
+// PoseMap/SKELETON_CONNECTIONS key joints by fixed "j-*" ids, but the API
+// only gives us a label (joints are re-synthesized server-side each update,
+// so their db ids change). Map label -> fixed rig id here.
+const LABEL_TO_RIG_ID: Record<string, string> = {
+  "Head": "j-head",
+  "L Shoulder": "j-lsh",
+  "R Shoulder": "j-rsh",
+  "L Elbow": "j-lel",
+  "R Elbow": "j-rel",
+  "L Wrist": "j-lwr",
+  "R Wrist": "j-rwr",
+  "Hip": "j-hip",
+  "L Knee": "j-lkn",
+  "R Knee": "j-rkn",
+  "L Ankle": "j-lank",
+  "R Ankle": "j-rank",
+};
+
+function apiSessionToSession(api: ApiSession): Session {
+  const repScores = [...api.reps]
+    .sort((a, b) => a.repIndex - b.repIndex)
+    .map((r) => r.score);
+
+  return {
+    id: api.id,
+    label: api.sport,
+    sport: api.sport,
+    date: new Date(api.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    overallScore: api.formScore ?? 0,
+    repCount: api.repCount,
+    joints: api.joints.map((j) => ({
+      id: LABEL_TO_RIG_ID[j.label] ?? j.id,
+      label: j.label,
+      x: j.x,
+      y: j.y,
+      score: j.score,
+    })),
+    feedback: api.feedback.map((f) => ({
+      id: f.id,
+      severity: f.severity,
+      joint: f.joint,
+      message: f.message,
+      detail: f.detail,
+    })),
+    // RepChart/best-worst rep math assumes at least one entry.
+    repScores: repScores.length > 0 ? repScores : [api.formScore ?? 0],
+  };
+}
+
+// ── Sport options ─────────────────────────────────────────────────────────────
+
+const SPORTS = ["Gym - Squat", "Gym - Deadlift", "Tennis - Serve", "Tennis - Forehand"];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -445,7 +473,7 @@ function RecordView({ onDone }: { onDone: () => void }) {
 
       {recording && (
         <p className="mt-4 text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
-          CVSF is tracking your movement — keep going until you finish your set.
+          CVSF is tracking your movement, keep going until you finish your set.
         </p>
       )}
     </div>
@@ -535,7 +563,7 @@ function ResultsView({ session, onNew }: { session: Session; onNew: () => void }
         <div className="bg-white">
           <div className="px-5 py-3.5 border-b border-zinc-100">
             <p className="text-[9px] font-mono text-zinc-300 uppercase tracking-widest">
-              {hoveredJoint ? `${hoveredJoint.label} — ${hoveredJoint.score}/100` : "Joint map — hover to inspect"}
+              {hoveredJoint ? `${hoveredJoint.label}: ${hoveredJoint.score}/100` : "Joint map - hover to inspect"}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row lg:flex-col gap-px bg-zinc-100">
@@ -653,7 +681,7 @@ function ResultsView({ session, onNew }: { session: Session; onNew: () => void }
 
           <div className="px-5 py-4 border-t border-zinc-100 mt-auto">
             <p className="text-[9px] font-mono text-zinc-300 uppercase tracking-widest leading-relaxed">
-              Fix critical items first — they carry the highest impact on your score.
+              Fix critical items first, they carry the highest impact on your score.
             </p>
           </div>
         </div>
@@ -666,6 +694,30 @@ function ResultsView({ session, onNew }: { session: Session; onNew: () => void }
 
 export default function AnalyticsPage() {
   const [view, setView] = useState<View>("home");
+  const [session, setSession] = useState<Session | null>(null);
+
+  // Poll the latest session while viewing results, so the page reflects the
+  // Pi's POST/PATCH calls as they land. 1.5s is plenty for a demo — no need
+  // for websockets.
+  useEffect(() => {
+    if (view !== "results") return;
+
+    let cancelled = false;
+
+    async function fetchLatest() {
+      const res = await fetch("/api/sessions");
+      if (!res.ok || cancelled) return;
+      const sessions: ApiSession[] = await res.json();
+      if (sessions.length > 0) setSession(apiSessionToSession(sessions[0]));
+    }
+
+    fetchLatest();
+    const poll = setInterval(fetchLatest, 1500);
+    return () => {
+      cancelled = true;
+      clearInterval(poll);
+    };
+  }, [view]);
 
   function handleRecordDone() {
     setView("processing");
@@ -706,7 +758,15 @@ export default function AnalyticsPage() {
       {view === "home"       && <HomeView onStart={() => setView("record")} />}
       {view === "record"     && <RecordView onDone={handleRecordDone} />}
       {view === "processing" && <ProcessingView />}
-      {view === "results"    && <ResultsView session={DEMO_SESSION} onNew={() => setView("home")} />}
+      {view === "results" && session && (
+        <ResultsView session={session} onNew={() => { setSession(null); setView("home"); }} />
+      )}
+      {view === "results" && !session && (
+        <div className="max-w-sm mx-auto px-6 sm:px-8 py-24 flex flex-col items-center text-center">
+          <div className="w-8 h-8 rounded-full border-2 border-zinc-200 border-t-black animate-spin mb-10" />
+          <p className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest">Waiting for session data</p>
+        </div>
+      )}
     </div>
   );
 }

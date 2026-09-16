@@ -29,7 +29,7 @@ export const features: Feature[] = [
     tag: "01  Pose Detection",
     title: "Real-time body tracking",
     description:
-      "33 keypoints tracked at up to 30fps directly on your device. No cloud round-trip, no lag — instant spatial awareness of every joint.",
+      "33 keypoints tracked at up to 30fps directly on your device. No cloud round-trip, no lag, instant spatial awareness of every joint.",
     image: "/assets/images/gym_001.jpg",
   },
   {
@@ -58,7 +58,7 @@ export const features: Feature[] = [
 export const sportCards: SportCard[] = [
   {
     name: "Gym",
-    description: "Squat depth, bar path, lockout — every rep graded in real time. Know exactly where your form breaks before the weight does.",
+    description: "Squat depth, bar path, lockout: every rep graded in real time. Know exactly where your form breaks before the weight does.",
     image: "/assets/images/gym_001.jpg",
   },
   {

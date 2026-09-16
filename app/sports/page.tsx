@@ -4,7 +4,7 @@ import { sports } from "@/constants/sports";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sports — CVSF",
+  title: "Sports - CVSF",
   description:
     "Learn the fundamentals of each sport. Technique guides, curated videos, and resources for every discipline CVSF covers.",
 };
@@ -28,7 +28,7 @@ export default function SportsIndexPage() {
 
       {/* Sport cards grid */}
       <div className="max-w-6xl mx-auto px-6 sm:px-8 pb-24 sm:pb-32">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-zinc-100 border border-zinc-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-zinc-100 border border-zinc-100">
           {sports.map((sport) => (
             <Link
               key={sport.slug}

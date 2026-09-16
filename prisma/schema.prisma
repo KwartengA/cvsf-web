@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Session {
+  id          String   @id @default(cuid())
+  sport       String   // "squat" | "pushup" | "leg_press" | "tennis_shot"
+  status      String   @default("live") // "live" | "complete"
+  formScore   Int?
+  repCount    Int      @default(0)
+  durationSec Int      @default(0)
+  startedAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  joints   Joint[]
+  feedback Feedback[]
+  reps     RepScore[]
+}
+
+model Joint {
+  id        String  @id @default(cuid())
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  label     String  // "L Knee", "R Hip", etc.
+  x         Float
+  y         Float
+  score     Int
+}
+
+model Feedback {
+  id        String  @id @default(cuid())
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  severity  String  // "critical" | "warning" | "good"
+  joint     String
+  message   String
+  detail    String
+}
+
+model RepScore {
+  id        String  @id @default(cuid())
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  repIndex  Int
+  score     Int
+}

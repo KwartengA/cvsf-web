@@ -28,7 +28,7 @@ export default function FeaturesPage() {
           Everything you need<br className="hidden sm:block" /> to move better
         </h1>
         <p className="text-base text-zinc-600 leading-relaxed max-w-md">
-          Built around one idea — you should know when your form breaks down, not after the session.
+          Built around one idea: you should know when your form breaks down, not after the session.
         </p>
       </div>
 
@@ -150,7 +150,7 @@ export default function FeaturesPage() {
             {sportsSection.title}
           </h2>
           <p className="text-base text-zinc-600 leading-relaxed max-w-lg">
-            Purpose-built form rules per discipline. A squat is not a swim stroke — each sport has its own keypoint weights and benchmarks.
+            Purpose-built form rules per discipline. A squat is not a swim stroke, each sport has its own keypoint weights and benchmarks.
           </p>
         </div>
 
