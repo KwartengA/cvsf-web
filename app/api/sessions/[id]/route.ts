@@ -52,6 +52,7 @@ export async function PATCH(
       data: {
         formScore: body.formScore,
         repCount: body.repCount,
+        durationSec: body.durationSec,
         status: body.status,
         reps: body.newRep ? { create: body.newRep } : undefined,
         ...(hasExplicitJoints && {

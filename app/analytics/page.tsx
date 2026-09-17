@@ -26,6 +26,7 @@ type Session = {
   sport: string;
   date: string;
   status: string;
+  userId: string | null;
   overallScore: number;
   repCount: number;
   joints: Joint[];
@@ -34,7 +35,7 @@ type Session = {
   shotTypes: string[];
 };
 
-type View = "home" | "record" | "processing" | "results";
+type View = "home" | "record" | "processing" | "results" | "history" | "historyDetail";
 
 // API response shapes (app/api/sessions/route.ts, app/api/sessions/[id]/route.ts)
 
@@ -51,6 +52,7 @@ type ApiSession = {
   id: string;
   sport: string;
   status: string;
+  userId: string | null;
   formScore: number | null;
   repCount: number;
   durationSec: number;
@@ -97,6 +99,7 @@ function apiSessionToSession(api: ApiSession): Session {
       minute: "2-digit",
     }),
     status: api.status,
+    userId: api.userId,
     overallScore: api.formScore ?? 0,
     repCount: api.repCount,
     joints: api.joints.map((j) => ({
@@ -575,6 +578,94 @@ function LivePiFeed() {
   );
 }
 
+// Every tested session, past or live — fetched fresh each time the History
+// tab is opened so it reflects whatever the Pi has saved since the last visit.
+function HistoryView({ onSelect, testerId }: { onSelect: (session: Session) => void; testerId: string }) {
+  const [sessions, setSessions] = useState<ApiSession[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/sessions")
+      .then((res) => res.json())
+      .then((data: ApiSession[]) => {
+        if (!cancelled) setSessions(data);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (sessions === null) {
+    return (
+      <div className="max-w-sm mx-auto px-6 sm:px-8 py-24 flex flex-col items-center text-center">
+        <div className="w-8 h-8 rounded-full border-2 border-zinc-200 border-t-black animate-spin mb-10" />
+        <p className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest">Loading sessions</p>
+      </div>
+    );
+  }
+
+  const filtered = testerId
+    ? sessions.filter((s) => s.userId === testerId)
+    : sessions;
+
+  if (sessions.length === 0) {
+    return (
+      <div className="max-w-sm mx-auto px-6 sm:px-8 py-24 flex flex-col items-center text-center">
+        <p className="text-xs text-zinc-400 leading-relaxed">
+          No sessions yet. Run a live test on the Pi, or record one above, and it will show up here.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto px-6 sm:px-8 py-8">
+      <p className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest mb-6">
+        {filtered.length} session{filtered.length === 1 ? "" : "s"} tested
+        {testerId && ` · filtered to tester "${testerId}"`}
+      </p>
+      {filtered.length === 0 && (
+        <p className="text-xs text-zinc-400 px-1">No sessions match tester &quot;{testerId}&quot;.</p>
+      )}
+      <div className="border border-zinc-100 divide-y divide-zinc-100">
+        {filtered.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => onSelect(apiSessionToSession(s))}
+            className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-zinc-50 transition-colors duration-150 cursor-pointer"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-black uppercase tracking-tight truncate">
+                {s.sport.replace(/_/g, " ")}
+              </p>
+              <p className="text-xs font-mono text-zinc-400">
+                {new Date(s.updatedAt).toLocaleString([], {
+                  month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+                })}
+                {" · "}{s.repCount} rep{s.repCount === 1 ? "" : "s"}
+                {s.userId && ` · ${s.userId}`}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <span className={`text-[9px] font-mono uppercase tracking-widest px-2 py-1 border ${
+                s.status === "live" ? "border-red-200 text-red-500" : "border-zinc-200 text-zinc-400"
+              }`}>
+                {s.status}
+              </span>
+              {s.formScore != null && (
+                <span className="text-sm font-black w-10 text-right" style={{ color: scoreColor(s.formScore) }}>
+                  {s.formScore}
+                </span>
+              )}
+              <span className="text-zinc-300 text-xs">→</span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function speak(text: string) {
   try {
     if (!("speechSynthesis" in window)) return;
@@ -843,27 +934,63 @@ function ResultsView({ session, onNew }: { session: Session; onNew: () => void }
 export default function AnalyticsPage() {
   const [view, setView] = useState<View>("home");
   const [session, setSession] = useState<Session | null>(null);
+  const [testerId, setTesterId] = useState("");
 
-  // Ids dismissed via "New session" — the API always returns the newest row
-  // in the db, which is stale once the user has moved past it. Skip those
-  // (and anything older, since sessions never come back) until a session
-  // with an id we haven't dismissed shows up.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("cvsf_tester_id");
+      if (saved) setTesterId(saved);
+    } catch {}
+  }, []);
+
+  function saveTesterId(value: string) {
+    setTesterId(value);
+    try {
+      localStorage.setItem("cvsf_tester_id", value);
+    } catch {}
+  }
+
+  // Ids dismissed via "New session" — skip these when picking which session
+  // to auto-watch, since they're a test the user already moved past.
   const dismissedIds = useRef<Set<string>>(new Set());
 
-  // Poll the latest session while viewing results, so the page reflects the
-  // Pi's POST/PATCH calls as they land. 1.5s is plenty for a demo — no need
-  // for websockets.
+  // Once a session is identified as "the one being tested right now", we
+  // pin to its id and keep polling that exact session by id — instead of
+  // re-scanning "whatever's newest", which could get hijacked by someone
+  // else's session (or a stale leftover "live" row) landing in the db.
+  // Cleared on "New session" so the next visit re-detects fresh.
+  const pinnedSessionId = useRef<string | null>(null);
+
+  // Poll the pinned/watched session while viewing results, so the page
+  // reflects the Pi's POST/PATCH calls as they land. 1.5s is plenty for a
+  // demo — no need for websockets.
   useEffect(() => {
     if (view !== "results") return;
 
     let cancelled = false;
 
     async function fetchLatest() {
+      if (pinnedSessionId.current) {
+        const res = await fetch(`/api/sessions/${pinnedSessionId.current}`);
+        if (!res.ok || cancelled) return;
+        const data: ApiSession = await res.json();
+        setSession(apiSessionToSession(data));
+        return;
+      }
+
       const res = await fetch("/api/sessions");
       if (!res.ok || cancelled) return;
       const sessions: ApiSession[] = await res.json();
-      const latest = sessions.find((s) => !dismissedIds.current.has(s.id));
-      if (latest) setSession(apiSessionToSession(latest));
+      const eligible = sessions.filter(
+        (s) => !dismissedIds.current.has(s.id) && (!testerId || s.userId === testerId)
+      );
+      // Prefer a session that's actually live right now (the one someone is
+      // testing this instant) over an older completed one.
+      const candidate = eligible.find((s) => s.status === "live") ?? eligible[0];
+      if (candidate) {
+        pinnedSessionId.current = candidate.id;
+        setSession(apiSessionToSession(candidate));
+      }
     }
 
     fetchLatest();
@@ -872,7 +999,7 @@ export default function AnalyticsPage() {
       cancelled = true;
       clearInterval(poll);
     };
-  }, [view]);
+  }, [view, testerId]);
 
   function handleRecordDone() {
     setView("processing");
@@ -883,7 +1010,7 @@ export default function AnalyticsPage() {
     <div className="bg-white text-black min-h-screen">
 
       {/* Page header */}
-      <div className="border-b border-zinc-100 px-6 sm:px-8 py-7 max-w-7xl mx-auto flex items-center justify-between">
+      <div className="border-b border-zinc-100 px-6 sm:px-8 py-7 max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-5">
           <div>
             <p className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest mb-1">Movement analysis</p>
@@ -891,21 +1018,36 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* View pills */}
-        <div className="hidden sm:flex gap-1">
-          {(["home","record","results"] as const).map((v) => (
-            <button
-              key={v}
-              onClick={() => v !== "record" ? setView(v) : setView("record")}
-              className={`px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest border transition-colors duration-150 cursor-pointer ${
-                view === v || (view === "processing" && v === "record")
-                  ? "bg-black text-white border-black"
-                  : "border-zinc-200 text-zinc-400 hover:border-zinc-400 hover:text-black"
-              }`}
-            >
-              {v === "home" ? "Start" : v === "record" ? "Record" : "Results"}
-            </button>
-          ))}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          {/* Tester id — matches --user-id passed to pi_live_inference.py.
+              Filters History and disambiguates which live session is "mine"
+              when more than one is running. Empty = no filtering. */}
+          <input
+            type="text"
+            defaultValue={testerId}
+            onBlur={(e) => saveTesterId(e.target.value.trim())}
+            placeholder="Tester ID (optional)"
+            className="text-xs font-mono px-3 py-1.5 border border-zinc-200 focus:border-black outline-none w-full sm:w-40"
+          />
+
+          {/* View pills */}
+          <div className="flex gap-1 overflow-x-auto">
+            {(["home","record","results","history"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest border transition-colors duration-150 cursor-pointer ${
+                  view === v
+                    || (view === "processing" && v === "record")
+                    || (view === "historyDetail" && v === "history")
+                    ? "bg-black text-white border-black"
+                    : "border-zinc-200 text-zinc-400 hover:border-zinc-400 hover:text-black"
+                }`}
+              >
+                {v === "home" ? "Start" : v === "record" ? "Record" : v === "results" ? "Results" : "History"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -916,6 +1058,7 @@ export default function AnalyticsPage() {
       {view === "results" && session && session.sport === "tennis_shot" && (
         <TennisShotResults session={session} onNew={() => {
           dismissedIds.current.add(session.id);
+          pinnedSessionId.current = null;
           setSession(null);
           setView("home");
         }} />
@@ -923,6 +1066,7 @@ export default function AnalyticsPage() {
       {view === "results" && session && session.sport !== "tennis_shot" && (
         <ResultsView session={session} onNew={() => {
           dismissedIds.current.add(session.id);
+          pinnedSessionId.current = null;
           setSession(null);
           setView("home");
         }} />
@@ -930,7 +1074,32 @@ export default function AnalyticsPage() {
       {view === "results" && !session && (
         <div className="max-w-sm mx-auto px-6 sm:px-8 py-24 flex flex-col items-center text-center">
           <div className="w-8 h-8 rounded-full border-2 border-zinc-200 border-t-black animate-spin mb-10" />
-          <p className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest">Waiting for session data</p>
+          <p className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest">
+            Waiting for session data{testerId && ` from "${testerId}"`}
+          </p>
+        </div>
+      )}
+      {view === "history" && (
+        <HistoryView
+          testerId={testerId}
+          onSelect={(s) => { setSession(s); setView("historyDetail"); }}
+        />
+      )}
+      {view === "historyDetail" && session && (
+        <div>
+          <div className="max-w-7xl mx-auto px-6 sm:px-8 pt-6">
+            <button
+              onClick={() => { setSession(null); setView("history"); }}
+              className="text-xs font-mono text-zinc-400 uppercase tracking-widest hover:text-black transition-colors duration-150 cursor-pointer"
+            >
+              ← Back to history
+            </button>
+          </div>
+          {session.sport === "tennis_shot" ? (
+            <TennisShotResults session={session} onNew={() => { setSession(null); setView("home"); }} />
+          ) : (
+            <ResultsView session={session} onNew={() => { setSession(null); setView("home"); }} />
+          )}
         </div>
       )}
     </div>
